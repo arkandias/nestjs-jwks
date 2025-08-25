@@ -1,6 +1,6 @@
 {
   "name": "nestjs-jwks",
-  "version": "1.0.0",
+  "version": "0.1.0-alpha",
   "author": "Julien Hauseux <julien.hauseux@gmail.com>",
   "license": "MIT",
   "description": "JWT key management with automatic rotation and JWKS endpoint for NestJS applications",
