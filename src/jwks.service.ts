@@ -87,15 +87,9 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit() {
-    // Ensure keys directory exists with secure permissions
+    // Ensure keys directory exists
     if (!fs.existsSync(this.keysDirectory)) {
-      fs.mkdirSync(this.keysDirectory, { recursive: true, mode: 0o700 });
-    } else {
-      // Set permissions if they're not already correct
-      const stats = fs.statSync(this.keysDirectory);
-      if ((stats.mode & 0o777) !== 0o700) {
-        fs.chmodSync(this.keysDirectory, 0o700);
-      }
+      fs.mkdirSync(this.keysDirectory, { recursive: true });
     }
 
     // Load metadata and rotate keys
@@ -238,9 +232,7 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
   }
 
   private saveMetadata(): void {
-    fs.writeFileSync(this.metadataPath, JSON.stringify(this.metadata), {
-      mode: 0o600,
-    });
+    fs.writeFileSync(this.metadataPath, JSON.stringify(this.metadata));
     this.logger.log("Metadata saved");
   }
 
@@ -261,7 +253,7 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
 
   private async saveKey(key: jose.CryptoKey, keyPath: string): Promise<void> {
     const keyPem = await jose.exportSPKI(key);
-    fs.writeFileSync(keyPath, keyPem, { mode: 0o600 });
+    fs.writeFileSync(keyPath, keyPem);
     this.logger.debug(`Key saved: ${path.basename(keyPath)}`);
   }
 
