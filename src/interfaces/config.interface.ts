@@ -11,9 +11,9 @@ export interface JwksModuleConfig {
     | "RS256"
     | "RS384"
     | "RS512";
-  modulusLength?: number; // for RSA-based algorithms only
-  rotationInterval?: number; // in milliseconds
-  expirationTime?: number; // in milliseconds
+  modulusLength?: number;
+  rotationInterval?: number;
+  expirationTime?: number;
   keysDirectory?: string;
 
   // Controller configuration
