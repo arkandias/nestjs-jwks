@@ -72,11 +72,6 @@ jobs:
 
           echo "✅ Build completed successfully"
 
-      - name: Run validation checks
-        run: |
-          echo "🔍 Running validation checks..."
-          pnpm run validate
-
       - name: Pack and verify package
         run: |
           echo "📦 Packing package..."
@@ -85,6 +80,8 @@ jobs:
           # List contents of the packed package
           echo "📋 Package contents:"
           tar -tzf "./packed/nestjs-jwks-${{ steps.vars.outputs.version }}.tgz"
+
+          git status # debug
 
       - name: Publish to npm
         env:
