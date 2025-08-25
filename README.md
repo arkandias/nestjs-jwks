@@ -10,11 +10,10 @@ Built with the JOSE library for robust cryptographic operations.
 
 - 🔄 **Automatic Key Rotation**: Keys are automatically rotated at configurable intervals
 - 🔐 **Multiple Algorithms**: Supports RSA, ECDSA, and EdDSA algorithms
-- 🚀 **JWKS Endpoint**: Provides a standard JWKS endpoint for public key discovery (RFC 7517)
-- 📁 **Persistent Storage**: Keys are stored securely on the filesystem
-- ⚙️ **Configurable**: Fully customizable rotation intervals, expiration times, and more
-- 🛡️ **Secure by Default**: Keys stored with restricted file permissions (600/700)
-- 📊 **Key Lifecycle Management**: Proper key deprecation and expiration handling
+- 🔗 **JWKS Endpoint**: Provides a standard JWKS endpoint for public key discovery (RFC 7517)
+- 📁 **Persistent Storage**: Public keys are stored securely on the filesystem
+- 🛡️ **Secure by Default**: Private keys are non-extractable and kept in memory only
+- ⚙️ **Simple Configuration**: Easy to customize rotation intervals, expiration times, endpoints, etc.
 - 🔧 **JOSE Integration**: Built on the industry-standard JOSE library for reliable JWT operations
 
 ## Installation
