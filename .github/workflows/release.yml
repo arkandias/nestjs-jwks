@@ -14,6 +14,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
 
       - name: Set variables
         id: vars
@@ -32,20 +33,6 @@ jobs:
             echo "npm_tag=latest" >> "${GITHUB_OUTPUT}"
             echo "is_prerelease=false" >> "${GITHUB_OUTPUT}"
           fi
-
-      - uses: ./.github/actions/setup
-
-      - name: Verify package.json version matches release
-        run: |
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          RELEASE_VERSION="${{ steps.vars.outputs.version }}"
-
-          if [[ "$PACKAGE_VERSION" != "$RELEASE_VERSION" ]]; then
-            echo "❌ Version mismatch: package.json has $PACKAGE_VERSION, release has $RELEASE_VERSION"
-            exit 1
-          fi
-
-          echo "✅ Version matches: $RELEASE_VERSION"
 
       - name: Build package
         run: |

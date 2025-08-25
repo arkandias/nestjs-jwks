@@ -60,13 +60,23 @@ jobs:
             echo "should_release=false" >> $GITHUB_OUTPUT
             echo "❌ Tag does not match version pattern: $TAG_NAME"
           fi
+
       - name: Checkout repository
         if: steps.check_tag.outputs.should_release == 'true'
         uses: actions/checkout@v5
-      - name: Check if version matches VERSION file
-        if: steps.check_tag.outputs.should_release == 'true'
+
+      - name: Verify package.json version matches release
         run: |
-          [[ "${{ steps.check_tag.outputs.version }}" == "$(cat VERSION)" ]] || exit 1
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          RELEASE_VERSION="${{ steps.vars.outputs.version }}"
+
+          if [[ "$PACKAGE_VERSION" != "$RELEASE_VERSION" ]]; then
+            echo "❌ Version mismatch: package.json has $PACKAGE_VERSION, release has $RELEASE_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version matches: $RELEASE_VERSION"
+
       - name: Create GitHub Release
         if: steps.check_tag.outputs.should_release == 'true'
         env:
