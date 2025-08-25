@@ -108,6 +108,10 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  get alg(): string {
+    return this.algorithm;
+  }
+
   get kid(): string {
     const activeKey = this.metadata.keys.find((key) => key.status === "active");
     if (!activeKey) {
