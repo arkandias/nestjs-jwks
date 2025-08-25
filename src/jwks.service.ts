@@ -46,23 +46,23 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @Inject(JWKS_MODULE_CONFIG)
-    private readonly config: JwksModuleConfig,
+    private readonly config?: JwksModuleConfig,
   ) {
-    this.algorithm = this.config.algorithm ?? DEFAULT_ALGORITHM;
+    this.algorithm = this.config?.algorithm ?? DEFAULT_ALGORITHM;
     if (RSA_BASED_ALGORITHMS.includes(this.algorithm)) {
-      this.modulusLength = this.config.modulusLength ?? DEFAULT_MODULUS_LENGTH;
+      this.modulusLength = this.config?.modulusLength ?? DEFAULT_MODULUS_LENGTH;
       if (this.modulusLength < 2048)
         throw new InternalServerErrorException(
           "RSA modulus length must be at least 2048 for security",
         );
     } else {
-      if (this.config.modulusLength) {
+      if (this.config?.modulusLength) {
         this.logger.warn("Modulus length is ignored for non-RSA algorithms");
       }
     }
 
     this.rotationInterval =
-      this.config.rotationInterval ?? DEFAULT_ROTATION_INTERVAL;
+      this.config?.rotationInterval ?? DEFAULT_ROTATION_INTERVAL;
     if (this.rotationInterval < 60000) {
       this.logger.warn("Keys rotation interval is very short (< 1 minute)");
     }
@@ -72,7 +72,8 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    this.expirationTime = this.config.expirationTime ?? DEFAULT_EXPIRATION_TIME;
+    this.expirationTime =
+      this.config?.expirationTime ?? DEFAULT_EXPIRATION_TIME;
     if (this.expirationTime < this.rotationInterval * 2) {
       this.logger.warn(
         "Keys expiration time should be at least 2x rotation interval for safe overlap",
@@ -80,7 +81,7 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
     }
 
     this.keysDirectory = path.resolve(
-      this.config.keysDirectory ?? DEFAULT_KEYS_DIRECTORY,
+      this.config?.keysDirectory ?? DEFAULT_KEYS_DIRECTORY,
     );
     this.metadataPath = path.join(this.keysDirectory, METADATA_FILE);
   }

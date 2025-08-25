@@ -1,14 +1,14 @@
 import { DynamicModule, Module } from "@nestjs/common";
 
 import { JwksModuleConfig } from "./interfaces";
-import { JwksController } from "./jwks.controller";
+import { createJwksController } from "./jwks.controller";
 import { JwksService } from "./jwks.service";
 
 export const JWKS_MODULE_CONFIG = "JWKS_MODULE_CONFIG";
 
 @Module({})
 export class JwksModule {
-  static forRoot(config: JwksModuleConfig): DynamicModule {
+  static forRoot(config?: JwksModuleConfig): DynamicModule {
     return {
       module: JwksModule,
       providers: [
@@ -18,7 +18,7 @@ export class JwksModule {
         },
         JwksService,
       ],
-      controllers: [JwksController],
+      controllers: [createJwksController(config?.controller)],
       exports: [JwksService],
     };
   }

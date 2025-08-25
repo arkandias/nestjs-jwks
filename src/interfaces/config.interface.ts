@@ -15,4 +15,13 @@ export interface JwksModuleConfig {
   rotationInterval?: number; // in milliseconds
   expirationTime?: number; // in milliseconds
   keysDirectory?: string;
+
+  // Controller configuration
+  controller?: JwksControllerConfig;
+}
+
+export interface JwksControllerConfig {
+  path?: string;
+  endpoint?: string;
+  headers?: Record<string, string>;
 }
