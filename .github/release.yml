@@ -1,0 +1,20 @@
+changelog:
+  categories:
+    - title: "✨ New Features"
+      labels:
+        - "feature"
+    - title: "🐛 Bug Fixes"
+      labels:
+        - "bug"
+    - title: "🔧 Code Improvements"
+      labels:
+        - "refactor"
+    - title: "📦 Dependencies"
+      labels:
+        - "dependencies"
+    - title: "🚀 CI/CD"
+      labels:
+        - "ci"
+    - title: "📚 Documentation"
+      labels:
+        - "documentation"

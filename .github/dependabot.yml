@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - dependencies
+    groups:
+      minors-and-patches:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - dependencies
+
+  - package-ecosystem: "github-actions"
+    directory: "/.github/actions/setup"
+    schedule:
+      interval: "weekly"
+    labels:
+      - dependencies
