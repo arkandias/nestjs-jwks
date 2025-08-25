@@ -68,7 +68,7 @@ jobs:
       - name: Verify package.json version matches release
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          RELEASE_VERSION="${{ steps.vars.outputs.version }}"
+          RELEASE_VERSION="${{ steps.check_tag.outputs.version }}"
 
           if [[ "$PACKAGE_VERSION" != "$RELEASE_VERSION" ]]; then
             echo "❌ Version mismatch: package.json has $PACKAGE_VERSION, release has $RELEASE_VERSION"
