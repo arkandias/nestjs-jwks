@@ -1,0 +1,11 @@
+node_modules/
+dist/
+
+.idea/
+.vscode/
+
+*.tsbuildinfo
+*.local
+*.bak
+
+.DS_Store
