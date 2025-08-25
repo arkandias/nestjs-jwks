@@ -6,11 +6,10 @@
   "description": "JWT key management with automatic rotation and JWKS endpoint for NestJS applications",
   "keywords": [
     "nestjs",
+    "jwk",
     "jwks",
     "jwt",
-    "keys",
-    "rotation",
-    "crypto"
+    "jose"
   ],
   "private": false,
   "engines": {
