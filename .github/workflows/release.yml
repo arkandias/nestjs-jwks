@@ -6,10 +6,6 @@ on:
 
 permissions:
   contents: write
-  packages: write
-
-env:
-  GHCR_REGISTRY: https://npm.pkg.github.com/
 
 jobs:
   build-and-publish:
@@ -97,29 +93,6 @@ jobs:
 
           echo "✅ Published to npm with tag: ${{ steps.vars.outputs.npm_tag }}"
 
-      - name: Publish to GitHub Packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🚀 Publishing to GitHub Packages..."
-
-          # Configure GitHub Packages registry
-          pnpm config set @${{ github.repository_owner }}:registry https://npm.pkg.github.com/
-          pnpm config set //npm.pkg.github.com/:_authToken "${GITHUB_TOKEN}"
-
-          # Update package.json to use scoped name for GitHub Packages
-          # Create a temporary package.json with scoped name
-          node -e "
-            const pkg = require('./package.json');
-            pkg.name = '@${{ github.repository_owner }}/' + pkg.name.replace(/^@[^\/]+\//, '');
-            require('fs').writeFileSync('./package-gh.json', JSON.stringify(pkg, null, 2));
-          "
-
-          # Publish to GitHub Packages with scoped name
-          pnpm publish --tag ${{ steps.vars.outputs.npm_tag }} --registry ${GHCR_REGISTRY} ./package-gh.json --no-git-checks
-
-          echo "✅ Published to GitHub Packages"
-
       - name: Create release summary
         run: |
           cat >> $GITHUB_STEP_SUMMARY << EOF
@@ -146,7 +119,6 @@ jobs:
 
           ## 🔗 Links
           - [npm Package](https://www.npmjs.com/package/nestjs-jwks/v/${{ steps.vars.outputs.version }})
-          - [GitHub Packages](https://github.com/${{ github.repository }}/pkgs/npm/nestjs-jwks)
           - [Release Notes](${{ github.event.release.html_url }})
           EOF
 
@@ -176,7 +148,6 @@ jobs:
 
           **Links:**
           - [📦 npm Package](https://www.npmjs.com/package/nestjs-jwks/v/${{ steps.vars.outputs.version }})
-          - [📦 GitHub Packages](https://github.com/${{ github.repository }}/pkgs/npm/nestjs-jwks)
           "
 
           # Update the release with package information
