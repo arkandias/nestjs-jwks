@@ -1,8 +1,6 @@
 {
   "name": "nestjs-jwks",
   "version": "0.1.0-alpha.1",
-  "author": "Julien Hauseux <julien.hauseux@gmail.com>",
-  "license": "MIT",
   "description": "JWT key management with automatic rotation and JWKS endpoint for NestJS applications",
   "keywords": [
     "nestjs",
@@ -11,7 +9,20 @@
     "jwt",
     "jose"
   ],
-  "private": false,
+  "homepage": "https://github.com/arkandias/nestjs-jwks#readme",
+  "bugs": {
+    "url": "https://github.com/arkandias/nestjs-jwks/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arkandias/nestjs-jwks.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Julien Hauseux",
+    "email": "julien.hauseux@gmail.com",
+    "url": "https://github.com/arkandias"
+  },
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
