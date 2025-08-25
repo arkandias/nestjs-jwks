@@ -93,7 +93,7 @@ jobs:
           pnpm config set //registry.npmjs.org/:_authToken "${NPM_TOKEN}"
 
           # Publish with appropriate tag
-          pnpm publish --tag ${{ steps.vars.outputs.npm_tag }} --access public
+          pnpm publish --tag ${{ steps.vars.outputs.npm_tag }} --access public --no-git-checks
 
           echo "✅ Published to npm with tag: ${{ steps.vars.outputs.npm_tag }}"
 

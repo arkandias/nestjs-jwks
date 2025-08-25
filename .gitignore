@@ -4,9 +4,4 @@ dist/
 .idea/
 .vscode/
 
-*.tsbuildinfo
-*.local
-*.bak
-*.tgz
-
 .DS_Store
