@@ -7,5 +7,6 @@ dist/
 *.tsbuildinfo
 *.local
 *.bak
+*.tgz
 
 .DS_Store

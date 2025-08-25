@@ -75,13 +75,11 @@ jobs:
       - name: Pack and verify package
         run: |
           echo "📦 Packing package..."
-          pnpm pack --pack-destination ./packed
+          pnpm pack
 
           # List contents of the packed package
           echo "📋 Package contents:"
           tar -tzf "./packed/nestjs-jwks-${{ steps.vars.outputs.version }}.tgz"
-
-          git status # debug
 
       - name: Publish to npm
         env:
