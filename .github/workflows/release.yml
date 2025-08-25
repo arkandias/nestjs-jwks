@@ -8,22 +8,33 @@ permissions:
   contents: write
   packages: write
 
+env:
+  GHCR_REGISTRY: https://npm.pkg.github.com/
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-      - uses: ./.github/actions/setup
 
       - name: Set variables
         id: vars
         run: |
           echo "date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "${GITHUB_OUTPUT}"
 
-          # For release workflow, we use the release name (version without 'v')
+          # Try to get version from release name first, fallback to tag name
           VERSION="${{ github.event.release.name }}"
+
+          # If release name is empty or just whitespace, use tag name
+          if [[ -z "${VERSION// }" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            # Remove 'v' prefix if present
+            VERSION="${VERSION#v}"
+          fi
+
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "Using version: ${VERSION}"
 
           # Determine if this is a prerelease
           if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
@@ -33,6 +44,20 @@ jobs:
             echo "npm_tag=latest" >> "${GITHUB_OUTPUT}"
             echo "is_prerelease=false" >> "${GITHUB_OUTPUT}"
           fi
+
+      - uses: ./.github/actions/setup
+
+      - name: Verify package.json version matches release
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          RELEASE_VERSION="${{ steps.vars.outputs.version }}"
+
+          if [[ "$PACKAGE_VERSION" != "$RELEASE_VERSION" ]]; then
+            echo "❌ Version mismatch: package.json has $PACKAGE_VERSION, release has $RELEASE_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version matches: $RELEASE_VERSION"
 
       - name: Build package
         run: |
@@ -64,15 +89,16 @@ jobs:
       - name: Publish to npm
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          HUSKY: 0 # Disable Husky during publish
         run: |
           echo "🚀 Publishing to npm..."
 
           # Configure npm registry and authentication
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          echo "registry=${NPM_REGISTRY}" >> ~/.npmrc
+          pnpm config set registry https://registry.npmjs.org/
+          pnpm config set //registry.npmjs.org/:_authToken "${NPM_TOKEN}"
 
           # Publish with appropriate tag
-          pnpm publish --tag ${{ steps.vars.outputs.npm_tag }} --access public --no-git-checks
+          pnpm publish --tag ${{ steps.vars.outputs.npm_tag }} --access public
 
           echo "✅ Published to npm with tag: ${{ steps.vars.outputs.npm_tag }}"
 
@@ -83,14 +109,14 @@ jobs:
           echo "🚀 Publishing to GitHub Packages..."
 
           # Configure GitHub Packages registry
-          echo "@${{ github.repository_owner }}:registry=${GHCR_REGISTRY}" > ~/.npmrc
-          echo "${GHCR_REGISTRY}:_authToken=${GITHUB_TOKEN}" >> ~/.npmrc
+          pnpm config set @${{ github.repository_owner }}:registry https://npm.pkg.github.com/
+          pnpm config set //npm.pkg.github.com/:_authToken "${GITHUB_TOKEN}"
 
           # Update package.json to use scoped name for GitHub Packages
           # Create a temporary package.json with scoped name
           node -e "
             const pkg = require('./package.json');
-            pkg.name = '@${{ github.repository_owner }}/' + pkg.name;
+            pkg.name = '@${{ github.repository_owner }}/' + pkg.name.replace(/^@[^\/]+\//, '');
             require('fs').writeFileSync('./package-gh.json', JSON.stringify(pkg, null, 2));
           "
 
