@@ -10,6 +10,7 @@ permissions:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -21,16 +22,20 @@ jobs:
 
           # Try to get version from release name first, fallback to tag name
           VERSION="${{ github.event.release.name }}"
-
-          # If release name is empty or just whitespace, use tag name
           if [[ -z "${VERSION// }" ]]; then
             VERSION="${{ github.event.release.tag_name }}"
             # Remove 'v' prefix if present
             VERSION="${VERSION#v}"
           fi
-
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
-          echo "Using version: ${VERSION}"
+
+          # Verify package.json version matches release version
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if [[ "$PACKAGE_VERSION" != "$VERSION" ]]; then
+            echo "❌ Version mismatch: package.json has $PACKAGE_VERSION, release has $VERSION"
+            exit 1
+          fi
+          echo "✅ Version match: $VERSION"
 
           # Determine if this is a prerelease
           if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
@@ -43,29 +48,10 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Verify package.json version matches release
-        run: |
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          RELEASE_VERSION="${{ steps.vars.outputs.version }}"
-
-          if [[ "$PACKAGE_VERSION" != "$RELEASE_VERSION" ]]; then
-            echo "❌ Version mismatch: package.json has $PACKAGE_VERSION, release has $RELEASE_VERSION"
-            exit 1
-          fi
-
-          echo "✅ Version matches: $RELEASE_VERSION"
-
       - name: Build package
         run: |
           echo "🏗️ Building package..."
           pnpm run build
-
-          # Verify dist directory was created
-          if [[ ! -d "dist" ]]; then
-            echo "❌ Build failed: dist directory not found"
-            exit 1
-          fi
-
           echo "✅ Build completed successfully"
 
       - name: Pack and verify package
