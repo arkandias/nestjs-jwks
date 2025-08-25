@@ -13,6 +13,11 @@
     "crypto"
   ],
   "private": false,
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@10.15.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -34,6 +39,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "express": "^5.1.0",
     "jose": "^6.0.13",
     "zod": "^4.0.17"
   },
@@ -42,6 +48,7 @@
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/eslint": "^9.6.1",
     "@types/eslint-config-prettier": "^6.11.3",
+    "@types/express": "^5.0.3",
     "@types/node": "^24.3.0",
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.8",
