@@ -79,7 +79,7 @@ jobs:
 
           # List contents of the packed package
           echo "📋 Package contents:"
-          tar -tzf "./packed/nestjs-jwks-${{ steps.vars.outputs.version }}.tgz"
+          tar -tzf "./nestjs-jwks-${{ steps.vars.outputs.version }}.tgz"
 
       - name: Publish to npm
         env:
