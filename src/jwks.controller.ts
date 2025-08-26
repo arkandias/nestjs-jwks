@@ -6,13 +6,13 @@ import {
   CONTROLLER_DEFAULT_HEADERS,
   CONTROLLER_DEFAULT_PATH,
 } from "./constants";
-import { JwksControllerConfig } from "./interfaces";
+import { JwksControllerOptions } from "./interfaces";
 import { JwksService } from "./jwks.service";
 
-export function createJwksController(config?: JwksControllerConfig) {
-  const path = config?.path ?? CONTROLLER_DEFAULT_PATH;
-  const endpoint = config?.endpoint ?? CONTROLLER_DEFAULT_ENDPOINT;
-  const headers = { ...CONTROLLER_DEFAULT_HEADERS, ...config?.headers };
+export function createJwksController(options?: JwksControllerOptions) {
+  const path = options?.path ?? CONTROLLER_DEFAULT_PATH;
+  const endpoint = options?.endpoint ?? CONTROLLER_DEFAULT_ENDPOINT;
+  const headers = { ...CONTROLLER_DEFAULT_HEADERS, ...options?.headers };
 
   @Controller(path)
   class JwksController {

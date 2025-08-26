@@ -1,1 +1,1 @@
-export type * from "./config.interface";
+export type * from "./options.interface";

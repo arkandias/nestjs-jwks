@@ -46,6 +46,16 @@ import { JwksModule } from "nestjs-jwks";
 export class AppModule {}
 ```
 
+**⚠️ Important: This module is global by design.**
+Import `JwksModule.forRoot()` or `JwksModule.forRootAsync()` only once in your root module (typically `AppModule`).
+The `JwksService` will then be available for injection throughout your entire application without needing to import the
+module in other feature modules.
+
+**💡 Note:** For dynamic configuration (e.g., using `ConfigService`), use `JwksModule.forRootAsync()`.
+Note that only **service configuration** can be resolved asynchronously &ndash; **controller configuration**
+must always be provided synchronously as NestJS requires route information at module initialization.
+See the [Configuration](#configuration) section below for async configuration examples.
+
 ### 2. Use the Service with JOSE
 
 ```typescript
@@ -87,10 +97,21 @@ GET /.well-known/jwks.json
 
 ## Configuration
 
-### Module Configuration
+### Options Interfaces
+
+The module options are split into two parts: **service options** (which can be resolved asynchronously) and **controller
+options** (which must be provided synchronously).
+For sync registration, both are combined in `JwksModuleOptions`, while for async registration, `JwksModuleAsyncOptions`
+resolves service options through a factory while keeping controller options direct.
+This separation enables dynamic service options while keeping routing paths static as required by NestJS.
+
+#### Service Options
+
+Service options control the cryptographic behavior and key management.
+These options can be resolved asynchronously when using `forRootAsync()`.
 
 ```typescript
-interface JwksModuleConfig {
+interface JwksServiceOptions {
   algorithm?:
     | "Ed25519"
     | "EdDSA"
@@ -107,17 +128,41 @@ interface JwksModuleConfig {
   rotationInterval?: number;
   expirationTime?: number;
   keysDirectory?: string;
-  controller?: JwksControllerConfig;
 }
 ```
 
-### Controller Configuration
+#### Controller Options
+
+Controller options define the HTTP endpoint configuration.
+These options must always be provided synchronously, as NestJS requires route paths to be known at module initialization
+time.
 
 ```typescript
-interface JwksControllerConfig {
+interface JwksControllerOptions {
   path?: string;
   endpoint?: string;
   headers?: Record<string, string>;
+}
+```
+
+#### Module Options
+
+`JwksModuleOptions` combines both service and controller options for synchronous registration with `forRoot()`.
+`JwksModuleAsyncOptions` separates them, allowing service options to be resolved through a factory while controller options remain direct.
+
+```typescript
+interface JwksModuleOptions extends JwksServiceOptions {
+  controller?: JwksControllerOptions;
+}
+```
+
+```typescript
+interface JwksModuleAsyncOptions extends Pick<ModuleMetadata, "imports"> {
+  useFactory: (
+    ...args: any[]
+  ) => JwksServiceOptions | Promise<JwksServiceOptions>; // Factory returns only service options
+  inject?: any[]; // Dependencies to inject into factory
+  controller?: JwksControllerOptions; // Provided directly (synchronously)
 }
 ```
 
@@ -134,7 +179,9 @@ interface JwksControllerConfig {
 | `controller.endpoint` | `'jwks.json'`                            | JWKS endpoint                                                            |
 | `controller.headers`  | `{ "Content-Type": "application/json" }` | HTTP headers for JWKS response (custom headers are merged with defaults) |
 
-### Usage Example
+### Usage Examples
+
+#### Synchronous Configuration
 
 ```typescript
 JwksModule.forRoot({
@@ -153,7 +200,37 @@ JwksModule.forRoot({
 });
 ```
 
-This creates the JWKS endpoint at: `GET /auth/keys`
+#### Asynchronous Configuration
+
+```typescript
+import { ConfigModule, ConfigService } from "@nestjs/config";
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    JwksModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        // 🔄 ASYNC: Service options loaded from environment variables via ConfigService
+        algorithm: configService.get("JWKS_ALGORITHM"),
+        modulusLength: configService.get<number>("JWKS_MODULUS_LENGTH"),
+        rotationInterval: configService.get<number>("JWKS_ROTATION_INTERVAL"),
+        expirationTime: configService.get<number>("JWKS_EXPIRATION_TIME"),
+        keysDirectory: configService.get("JWKS_KEYS_DIRECTORY"),
+      }),
+      // ⚡ SYNC: Controller options provided directly (or using process.env directly)
+      controller: {
+        path: "auth",
+        endpoint: "keys",
+        headers: {
+          "Cache-Control": "public, max-age=3600",
+        },
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
 
 ## Supported Algorithms
 

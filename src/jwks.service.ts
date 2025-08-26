@@ -7,7 +7,6 @@ import {
   Logger,
   OnModuleDestroy,
   OnModuleInit,
-  Optional,
 } from "@nestjs/common";
 import fs from "fs";
 import jose from "jose";
@@ -23,66 +22,47 @@ import {
   METADATA_FILE,
   RSA_BASED_ALGORITHMS,
 } from "./constants";
-import { JwksModuleConfig } from "./interfaces";
-import { JWKS_MODULE_CONFIG } from "./jwks.module";
+import { JwksServiceOptions } from "./interfaces";
+import { JWKS_SERVICE_OPTIONS } from "./jwks.module";
 import { Key, Metadata, metadataSchema } from "./schemas";
+import type { Algorithm } from "./types";
 
 @Injectable()
 export class JwksService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(JwksService.name);
-  private readonly algorithm: NonNullable<JwksModuleConfig["algorithm"]>;
-  private readonly modulusLength?: number;
+
+  private readonly algorithm: Algorithm;
+  private readonly modulusLength: number;
   private readonly rotationInterval: number;
   private readonly expirationTime: number;
   private readonly keysDirectory: string;
   private readonly metadataPath: string;
+
   private metadata: Metadata = { keys: [] };
   private rotationTimeout: NodeJS.Timeout | null = null;
   private _privateKey: jose.CryptoKey | null = null;
   jwks: jose.JSONWebKeySet = { keys: [] };
-  getKey = jose.createLocalJWKSet(this.jwks);
+  getKey: (
+    protectedHeader?: jose.JWSHeaderParameters,
+    token?: jose.FlattenedJWSInput,
+  ) => Promise<jose.CryptoKey> = jose.createLocalJWKSet(this.jwks);
 
   constructor(
-    @Optional()
-    @Inject(JWKS_MODULE_CONFIG)
-    private readonly config?: JwksModuleConfig,
+    @Inject(JWKS_SERVICE_OPTIONS)
+    private readonly options: JwksServiceOptions,
   ) {
-    this.algorithm = this.config?.algorithm ?? DEFAULT_ALGORITHM;
-    if (RSA_BASED_ALGORITHMS.includes(this.algorithm)) {
-      this.modulusLength = this.config?.modulusLength ?? DEFAULT_MODULUS_LENGTH;
-      if (this.modulusLength < 2048)
-        throw new InternalServerErrorException(
-          "RSA modulus length must be at least 2048 for security",
-        );
-    } else {
-      if (this.config?.modulusLength) {
-        this.logger.warn("Modulus length is ignored for non-RSA algorithms");
-      }
-    }
-
+    this.algorithm = this.options.algorithm ?? DEFAULT_ALGORITHM;
+    this.modulusLength = this.options.modulusLength ?? DEFAULT_MODULUS_LENGTH;
     this.rotationInterval =
-      this.config?.rotationInterval ?? DEFAULT_ROTATION_INTERVAL;
-    if (this.rotationInterval < 60000) {
-      this.logger.warn("Key rotation interval is very short (< 1 minute)");
-    }
-    if (this.rotationInterval > 2147483647) {
-      this.logger.warn(
-        "Key rotation interval exceeds setTimeout limit (2147483647 ms / ~24.8 days)",
-      );
-    }
-
+      this.options.rotationInterval ?? DEFAULT_ROTATION_INTERVAL;
     this.expirationTime =
-      this.config?.expirationTime ?? DEFAULT_EXPIRATION_TIME;
-    if (this.expirationTime < this.rotationInterval * 2) {
-      this.logger.warn(
-        "Keys expiration time should be at least 2x rotation interval for safe overlap",
-      );
-    }
-
+      this.options.expirationTime ?? DEFAULT_EXPIRATION_TIME;
     this.keysDirectory = path.resolve(
-      this.config?.keysDirectory ?? DEFAULT_KEYS_DIRECTORY,
+      this.options.keysDirectory ?? DEFAULT_KEYS_DIRECTORY,
     );
     this.metadataPath = path.join(this.keysDirectory, METADATA_FILE);
+
+    this.validateConfig();
   }
 
   async onModuleInit() {
@@ -99,6 +79,38 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
   onModuleDestroy() {
     if (this.rotationTimeout) {
       clearTimeout(this.rotationTimeout);
+    }
+  }
+
+  private validateConfig(): void {
+    if (
+      !RSA_BASED_ALGORITHMS.includes(this.algorithm) &&
+      this.options.modulusLength !== undefined
+    ) {
+      if (this.options.modulusLength) {
+        this.logger.warn("Modulus length is ignored for non-RSA algorithms");
+      }
+    }
+
+    if (this.modulusLength < 2048) {
+      throw new InternalServerErrorException(
+        "Modulus length must be at least 2048 for security",
+      );
+    }
+
+    if (this.rotationInterval < 60000) {
+      this.logger.warn("Key rotation interval is very short (< 1 minute)");
+    }
+    if (this.rotationInterval > 2147483647) {
+      this.logger.warn(
+        "Key rotation interval exceeds setTimeout limit (2147483647 ms / ~24.8 days)",
+      );
+    }
+
+    if (this.expirationTime < this.rotationInterval * 2) {
+      this.logger.warn(
+        "Keys expiration time should be at least 2x rotation interval for safe overlap",
+      );
     }
   }
 
