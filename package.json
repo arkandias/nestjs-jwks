@@ -1,6 +1,6 @@
 {
   "name": "nestjs-jwks",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "JWT key management with automatic rotation and JWKS endpoint for NestJS applications",
   "keywords": [
     "nestjs",
