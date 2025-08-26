@@ -131,8 +131,9 @@ jobs:
           yarn add nestjs-jwks@${{ steps.vars.outputs.version }}
           \`\`\`
 
-          **Links:**
-          - [📦 npm Package](https://www.npmjs.com/package/nestjs-jwks/v/${{ steps.vars.outputs.version }})
+          #### Links
+
+          - 📦 [npm Package](https://www.npmjs.com/package/nestjs-jwks/v/${{ steps.vars.outputs.version }})
           "
 
           # Update the release with package information
