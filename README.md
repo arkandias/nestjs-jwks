@@ -181,6 +181,9 @@ interface JwksModuleAsyncOptions extends Pick<ModuleMetadata, "imports"> {
 
 ### Usage Examples
 
+Here are two common ways to configure the JWKS module in your NestJS application.
+In both examples, the module creates a JWKS endpoint at: `GET /auth/keys`
+
 #### Synchronous Configuration
 
 ```typescript
