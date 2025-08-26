@@ -5,8 +5,8 @@ import {
   CONTROLLER_DEFAULT_ENDPOINT,
   CONTROLLER_DEFAULT_HEADERS,
   CONTROLLER_DEFAULT_PATH,
-} from "./constants/defaults.constants";
-import { JwksControllerConfig } from "./interfaces/config.interface";
+} from "./constants";
+import { JwksControllerConfig } from "./interfaces";
 import { JwksService } from "./jwks.service";
 
 export function createJwksController(config?: JwksControllerConfig) {

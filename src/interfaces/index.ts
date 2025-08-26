@@ -1,1 +1,1 @@
-export type { JwksModuleConfig } from "./config.interface";
+export type * from "./config.interface";

@@ -19,9 +19,10 @@ import {
   DEFAULT_KEYS_DIRECTORY,
   DEFAULT_MODULUS_LENGTH,
   DEFAULT_ROTATION_INTERVAL,
+  KEY_EXTENSION,
+  METADATA_FILE,
+  RSA_BASED_ALGORITHMS,
 } from "./constants";
-import { RSA_BASED_ALGORITHMS } from "./constants/algorithms.constants";
-import { KEY_EXTENSION, METADATA_FILE } from "./constants/filenames.constants";
 import { JwksModuleConfig } from "./interfaces";
 import { JWKS_MODULE_CONFIG } from "./jwks.module";
 import { Key, Metadata, metadataSchema } from "./schemas";
