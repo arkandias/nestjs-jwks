@@ -1,4 +1,4 @@
-import { Controller, Get, Header, Res } from "@nestjs/common";
+import { Controller, Get, Res } from "@nestjs/common";
 import type { Response } from "express";
 
 import {
@@ -19,8 +19,7 @@ export function createJwksController(options?: JwksControllerOptions) {
     constructor(readonly jwksService: JwksService) {}
 
     @Get(endpoint)
-    @Header("Content-Type", "application/json")
-    getPublicKeyJwks(@Res() res: Response) {
+    getJwks(@Res() res: Response) {
       // Apply custom headers
       Object.entries(headers).forEach(([key, value]) => {
         res.setHeader(key, value);
