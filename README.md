@@ -209,6 +209,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
   imports: [
     ConfigModule.forRoot(),
     JwksModule.forRootAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         // 🔄 ASYNC: Service options loaded from environment variables via ConfigService

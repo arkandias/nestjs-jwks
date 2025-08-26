@@ -1,10 +1,9 @@
 import { DynamicModule, Global, Module } from "@nestjs/common";
 
+import { JWKS_SERVICE_OPTIONS } from "./constants";
 import { JwksModuleAsyncOptions, JwksModuleOptions } from "./interfaces";
 import { createJwksController } from "./jwks.controller";
 import { JwksService } from "./jwks.service";
-
-export const JWKS_SERVICE_OPTIONS = "JWKS_SERVICE_OPTIONS";
 
 @Global()
 @Module({})

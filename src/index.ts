@@ -1,4 +1,4 @@
-export { JwksModule, JWKS_SERVICE_OPTIONS } from "./jwks.module";
+export { JwksModule } from "./jwks.module";
 export { JwksService } from "./jwks.service";
 export { createJwksController } from "./jwks.controller";
 

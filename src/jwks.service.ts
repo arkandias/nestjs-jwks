@@ -18,12 +18,12 @@ import {
   DEFAULT_KEYS_DIRECTORY,
   DEFAULT_MODULUS_LENGTH,
   DEFAULT_ROTATION_INTERVAL,
+  JWKS_SERVICE_OPTIONS,
   KEY_EXTENSION,
   METADATA_FILE,
   RSA_BASED_ALGORITHMS,
 } from "./constants";
 import { JwksServiceOptions } from "./interfaces";
-import { JWKS_SERVICE_OPTIONS } from "./jwks.module";
 import { Key, Metadata, metadataSchema } from "./schemas";
 import type { Algorithm } from "./types";
 
