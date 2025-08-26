@@ -3,7 +3,7 @@
 JWT key management with automatic rotation and JWKS endpoint for NestJS applications.
 Built with the JOSE library for robust cryptographic operations.
 
-[![npm version](https://badge.fury.io/js/nestjs-jwks.svg)](https://badge.fury.io/js/nestjs-jwks)
+[![npm version](https://img.shields.io/npm/v/nestjs-jwks.svg)](https://www.npmjs.com/package/nestjs-jwks)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
