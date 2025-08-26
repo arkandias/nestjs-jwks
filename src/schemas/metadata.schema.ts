@@ -2,12 +2,14 @@ import { z } from "zod";
 
 export const keySchema = z.object({
   kid: z.string(),
-  status: z.enum(["active", "deprecated", "expired"]),
+  status: z.enum(["active", "deprecated", "expired", "revoked"]),
   createdAt: z.number(),
   expiresAt: z.number(),
   deprecatedAt: z.number().nullable(),
+  expiredAt: z.number().nullable(),
+  revokedAt: z.number().nullable(),
   removedAt: z.number().nullable(),
-  publicKeyPath: z.string().nullable(),
+  keyPath: z.string().nullable(),
 });
 
 export const metadataSchema = z.object({

@@ -20,13 +20,10 @@ import {
   DEFAULT_ROTATION_INTERVAL,
 } from "./constants";
 import { RSA_BASED_ALGORITHMS } from "./constants/algorithms.constants";
-import {
-  METADATA_FILE,
-  PUBLIC_KEY_EXTENSION,
-} from "./constants/filenames.constants";
+import { KEY_EXTENSION, METADATA_FILE } from "./constants/filenames.constants";
 import { JwksModuleConfig } from "./interfaces";
 import { JWKS_MODULE_CONFIG } from "./jwks.module";
-import { Metadata, metadataSchema } from "./schemas";
+import { Key, Metadata, metadataSchema } from "./schemas";
 
 @Injectable()
 export class JwksService implements OnModuleInit, OnModuleDestroy {
@@ -39,10 +36,9 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
   private readonly metadataPath: string;
   private metadata: Metadata = { keys: [] };
   private rotationTimeout: NodeJS.Timeout | null = null;
-  jwks: jose.JSONWebKeySet = { keys: [] };
   private _privateKey: jose.CryptoKey | null = null;
-  private _getKey: ReturnType<typeof jose.createLocalJWKSet> | null = null;
-  private _jwksKeys: jose.JWK[] | null = null;
+  jwks: jose.JSONWebKeySet = { keys: [] };
+  getKey = jose.createLocalJWKSet(this.jwks);
 
   constructor(
     @Inject(JWKS_MODULE_CONFIG)
@@ -64,11 +60,11 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
     this.rotationInterval =
       this.config?.rotationInterval ?? DEFAULT_ROTATION_INTERVAL;
     if (this.rotationInterval < 60000) {
-      this.logger.warn("Keys rotation interval is very short (< 1 minute)");
+      this.logger.warn("Key rotation interval is very short (< 1 minute)");
     }
     if (this.rotationInterval > 2147483647) {
       this.logger.warn(
-        "Keys rotation interval exceeds setTimeout limit (2147483647 ms / ~24.8 days)",
+        "Key rotation interval exceeds setTimeout limit (2147483647 ms / ~24.8 days)",
       );
     }
 
@@ -95,16 +91,11 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
     // Load metadata and rotate keys
     this.loadMetadata();
     await this.rotateKeys();
-
-    // Set interval for key rotation
-    this.rotationTimeout = setInterval(() => {
-      void this.rotateKeys();
-    }, this.rotationInterval);
   }
 
   onModuleDestroy() {
     if (this.rotationTimeout) {
-      clearInterval(this.rotationTimeout);
+      clearTimeout(this.rotationTimeout);
     }
   }
 
@@ -127,60 +118,25 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
     return this._privateKey;
   }
 
-  get getKey() {
-    // Only rebuild if JWKS changed
-    if (!this._getKey || this.jwks.keys !== this._jwksKeys) {
-      this._getKey = jose.createLocalJWKSet(this.jwks);
-      this._jwksKeys = this.jwks.keys;
-      this.logger.debug("JWKS key function rebuilt");
-    }
-    return this._getKey;
-  }
-
-  private async updateJwks(): Promise<void> {
-    this.logger.log("Updating JWKS...");
-
-    const keys: jose.JWK[] = [];
-    for (const key of this.metadata.keys) {
-      if (key.status === "expired") {
-        continue;
-      }
-
-      const publicKeyPath = this.publicKeyPath(key.kid);
-      if (!fs.existsSync(publicKeyPath)) {
-        this.logger.warn(
-          `Missing public key file: ${path.basename(publicKeyPath)}`,
-        );
-        continue;
-      }
-
-      const publicKey = await this.loadKey(publicKeyPath);
-      const jwk = await this.exportJwk(publicKey, key.kid);
-      keys.push(jwk);
-    }
-    this.jwks.keys = keys;
-    this._getKey = jose.createLocalJWKSet(this.jwks);
-    this.logger.log(`JWKS: ${keys.length} key(s) loaded`);
-  }
-
-  private async rotateKeys(): Promise<void> {
+  async rotateKeys(): Promise<void> {
     const now = Date.now();
     this.logger.log("Rotation started...");
 
     // Purge expired keys
     this.metadata.keys
-      .filter((key) => key.status !== "expired" && key.expiresAt <= now)
+      .filter(
+        (key) =>
+          key.status !== "expired" &&
+          key.status !== "revoked" &&
+          key.expiresAt <= now,
+      )
       .forEach((key) => {
         key.status = "expired";
-        key.removedAt = now;
+        key.expiredAt = now;
         this.logger.log(`Key expired: ${key.kid}`);
-        if (key.publicKeyPath) {
-          this.deleteKey(key.publicKeyPath);
-          key.publicKeyPath = null;
-        }
       });
 
-    // Deprecate any active key in metadata
+    // Deprecate active key in metadata
     this.metadata.keys
       .filter((key) => key.status === "active")
       .forEach((key) => {
@@ -209,8 +165,8 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`Key generated: ${kid}`);
 
     // Save public key
-    const publicKeyPath = this.publicKeyPath(kid);
-    await this.saveKey(publicKey, publicKeyPath);
+    const keyPath = this.keyPath(kid);
+    await this.saveKey(publicKey, keyPath);
 
     // Add new active key to metadata
     this.metadata.keys.push({
@@ -219,20 +175,121 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
       createdAt: now,
       expiresAt: now + this.expirationTime,
       deprecatedAt: null,
+      expiredAt: null,
+      revokedAt: null,
       removedAt: null,
-      publicKeyPath,
+      keyPath,
     });
 
-    // Save metadata
+    // Save metadata and update JWKS
     this.saveMetadata();
-
-    // Update JWKS with metadata
     await this.updateJwks();
 
     // Replace active private key
     this._privateKey = privateKey;
 
     this.logger.log("Rotation completed");
+
+    // Clear timeout (if any) and set new timeout for next key rotation
+    if (this.rotationTimeout) {
+      clearTimeout(this.rotationTimeout);
+    }
+    this.rotationTimeout = setTimeout(() => {
+      void this.rotateKeys();
+    }, this.rotationInterval);
+    this.logger.log(`Next rotation in ${this.rotationInterval} ms`);
+  }
+
+  async revokeKey(kid?: string): Promise<void> {
+    const now = Date.now();
+
+    const criterion = kid
+      ? (key: Key) => key.kid === kid
+      : (key: Key) => key.status === "active";
+    const key = this.metadata.keys.find(criterion);
+
+    if (!key) {
+      this.logger.warn("Key not found");
+      return;
+    }
+
+    const wasActive = key.status === "active";
+    key.status = "revoked";
+    key.revokedAt = now;
+    this.logger.log(`Key revoked: ${key.kid}`);
+
+    if (wasActive) {
+      await this.rotateKeys();
+    } else {
+      this.saveMetadata();
+      await this.updateJwks();
+    }
+  }
+
+  async revokeAllKeys(): Promise<void> {
+    const now = Date.now();
+
+    this.metadata.keys
+      .filter((key) => key.status !== "expired" && key.status !== "revoked")
+      .forEach((key) => {
+        key.status = "revoked";
+        key.revokedAt = now;
+        this.logger.log(`Key revoked: ${key.kid}`);
+      });
+
+    await this.rotateKeys();
+  }
+
+  purgeKeyFiles(): void {
+    const now = Date.now();
+
+    this.metadata.keys
+      .filter((key) => key.status === "expired" || key.status === "revoked")
+      .forEach((key) => {
+        if (key.keyPath) {
+          this.deleteKey(key.keyPath);
+          key.keyPath = null;
+          key.removedAt = now;
+          this.logger.log(`Key removed: ${key.kid}`);
+        }
+      });
+
+    this.saveMetadata();
+  }
+
+  private async updateJwks(): Promise<void> {
+    this.logger.log("Updating JWKS...");
+
+    const keys: jose.JWK[] = [];
+    for (const key of this.metadata.keys) {
+      if (key.status === "expired" || key.status === "revoked") {
+        continue;
+      }
+
+      const keyPath = key.keyPath;
+      if (!keyPath) {
+        this.logger.warn(`Missing public key file path: ${key.kid}`);
+        continue;
+      }
+      if (!fs.existsSync(keyPath)) {
+        this.logger.warn(`Missing public key file: ${path.basename(keyPath)}`);
+        continue;
+      }
+
+      try {
+        const publicKey = await this.loadKey(keyPath);
+        const jwk = await this.exportJwk(publicKey, key.kid);
+        keys.push(jwk);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.warn(`Failed to load key: ${key.kid}`);
+        this.logger.warn(`Error: ${message}`);
+      }
+    }
+    this.jwks.keys = keys;
+    this.getKey = jose.createLocalJWKSet(this.jwks);
+
+    this.logger.log(`JWKS: ${keys.length} key(s) loaded`);
   }
 
   private saveMetadata(): void {
@@ -251,8 +308,8 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
     this.logger.log("Metadata loaded");
   }
 
-  private publicKeyPath(kid: string) {
-    return path.join(this.keysDirectory, kid + PUBLIC_KEY_EXTENSION);
+  private keyPath(kid: string) {
+    return path.join(this.keysDirectory, kid + KEY_EXTENSION);
   }
 
   private async saveKey(key: jose.CryptoKey, keyPath: string): Promise<void> {

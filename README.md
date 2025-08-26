@@ -234,12 +234,18 @@ keys/
 - `alg: string` &ndash; Algorithm used
 - `kid: string` &ndash; Current active key ID
 - `privateKey: jose.CryptoKey` &ndash; Current private key for signing
-- `jwks: jose.JSONWebKeySet` &ndash; Public JWKS object
+- `jwks: jose.JSONWebKeySet` &ndash; The public JWKS object
 - `getKey: Function` &ndash; Key resolver function for verification
 
 #### Methods
 
-The service automatically manages key rotation and doesn't expose public methods for manual key management.
+- `rotateKeys(): Promise<void>` &ndash; Manually trigger key rotation (generates new active key and deprecates current one)
+- `revokeKey(kid?: string): Promise<void>` &ndash; Revoke a specific key or current active key (triggers rotation if active key is revoked)
+- `revokeAllKeys(): Promise<void>` &ndash; Revoke all non-expired keys (triggers rotation)
+- `purgeKeyFiles(): void` &ndash; Delete key files for expired/revoked keys (keeps metadata for audit)
+
+The service automatically manages key rotation on startup and at configured intervals.
+Manual operations are available for security incidents or administrative needs.
 
 ## Contributing
 
