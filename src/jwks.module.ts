@@ -14,7 +14,7 @@ export class JwksModule {
       providers: [
         {
           provide: JWKS_MODULE_CONFIG,
-          useValue: config,
+          useValue: config ?? {},
         },
         JwksService,
       ],
