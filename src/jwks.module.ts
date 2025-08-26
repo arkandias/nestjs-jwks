@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from "@nestjs/common";
+import { DynamicModule, Global, Module } from "@nestjs/common";
 
 import { JwksModuleConfig } from "./interfaces";
 import { createJwksController } from "./jwks.controller";
@@ -6,6 +6,7 @@ import { JwksService } from "./jwks.service";
 
 export const JWKS_MODULE_CONFIG = "JWKS_MODULE_CONFIG";
 
+@Global()
 @Module({})
 export class JwksModule {
   static forRoot(config?: JwksModuleConfig): DynamicModule {

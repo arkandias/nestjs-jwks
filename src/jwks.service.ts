@@ -7,6 +7,7 @@ import {
   Logger,
   OnModuleDestroy,
   OnModuleInit,
+  Optional,
 } from "@nestjs/common";
 import fs from "fs";
 import jose from "jose";
@@ -41,6 +42,7 @@ export class JwksService implements OnModuleInit, OnModuleDestroy {
   getKey = jose.createLocalJWKSet(this.jwks);
 
   constructor(
+    @Optional()
     @Inject(JWKS_MODULE_CONFIG)
     private readonly config?: JwksModuleConfig,
   ) {
