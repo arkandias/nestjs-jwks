@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup
       - name: Format check with Prettier
         run: pnpm run format:check
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup
       - name: Type check with TypeScript
         run: pnpm run typecheck
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup
       - name: Lint with ESLint
         run: pnpm run lint
@@ -63,7 +63,7 @@ jobs:
 
       - name: Checkout repository
         if: steps.check_tag.outputs.should_release == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Verify package.json version matches release
         run: |
