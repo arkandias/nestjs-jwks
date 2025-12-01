@@ -21,8 +21,10 @@ export interface JwksModuleOptions extends JwksServiceOptions {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export interface JwksModuleAsyncOptions
-  extends Pick<ModuleMetadata, "imports"> {
+export interface JwksModuleAsyncOptions extends Pick<
+  ModuleMetadata,
+  "imports"
+> {
   useFactory: (
     ...args: any[]
   ) => JwksServiceOptions | Promise<JwksServiceOptions>;
