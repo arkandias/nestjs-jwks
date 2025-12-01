@@ -49,24 +49,24 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "express": "^5.1.0",
-    "jose": "^6.1.0",
-    "zod": "^4.1.12"
+    "express": "^5.2.1",
+    "jose": "^6.1.2",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@eslint/js": "^9.37.0",
+    "@eslint/js": "^9.39.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "@types/eslint": "^9.6.1",
     "@types/eslint-config-prettier": "^6.11.3",
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.7.2",
-    "eslint": "^9.37.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
-    "globals": "^16.4.0",
+    "globals": "^16.5.0",
     "husky": "^9.1.7",
-    "prettier": "^3.6.2",
+    "prettier": "^3.7.3",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.0"
+    "typescript-eslint": "^8.48.0"
   },
   "peerDependencies": {
     "@nestjs/common": "^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0",
