@@ -54,7 +54,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^10.0.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "@types/eslint": "^9.6.1",
     "@types/eslint-config-prettier": "^6.11.3",
