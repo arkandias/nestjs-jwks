@@ -19,6 +19,7 @@
     /* Module */
     "module": "CommonJS",
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "resolveJsonModule": true,
     "rootDir": "./src",
     "types": ["node"],
